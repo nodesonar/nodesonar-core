@@ -10,6 +10,7 @@ const basePingResponse = {
     min: '10.0',
     max: '15.0',
     avg: '12.5',
+    count: 4,
     packetLoss: 0,
     stddev: '1.2',
 };
@@ -22,10 +23,10 @@ describe('formatPingResponse', () => {
         expect(result.host).toBe('192.168.1.1');
     });
 
-    it('should map responseMs from time', () => {
+    it('should map count correctly', () => {
         const result = formatPingResponse(basePingResponse);
 
-        expect(result.responseMs).toBe(12.5);
+        expect(result.count).toBe(4);
     });
 
     it('should map packetLoss correctly', () => {
@@ -38,6 +39,26 @@ describe('formatPingResponse', () => {
         const result = formatPingResponse(basePingResponse);
 
         expect(result.output).toBe('PING 192.168.1.1: 56 data bytes');
+    });
+
+    describe('latency', () => {
+        it('should map average latency from time', () => {
+            const result = formatPingResponse(basePingResponse);
+
+            expect((result.latency as { average: number }).average).toBe(12.5);
+        });
+
+        it('should map slowest latency from max', () => {
+            const result = formatPingResponse(basePingResponse);
+
+            expect((result.latency as { slowest: number }).slowest).toBe(15);
+        });
+
+        it('should map fastest latency from max', () => {
+            const result = formatPingResponse(basePingResponse);
+
+            expect((result.latency as { fastest: number }).fastest).toBe(10);
+        });
     });
 
     describe('when device is reachable', () => {

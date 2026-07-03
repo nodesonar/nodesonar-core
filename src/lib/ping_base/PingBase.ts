@@ -22,6 +22,6 @@ export abstract class PingBase {
             min_reply: this.options.count,
         });
 
-        return formatPingResponse(response);
+        return formatPingResponse({ ...response, count: this.options.count as number });
     }
 };

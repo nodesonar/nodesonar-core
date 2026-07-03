@@ -1,7 +1,18 @@
+import type { PingResponse } from 'ping/types/parser/base';
+
 export namespace PingHost {
+    export interface PingResponseBase extends PingResponse {
+        count: number;
+    }
+
     export interface Response {
         host: string;
-        responseMs: number | unknown;
+        latency: {
+            average: number;
+            fastest: number;
+            slowest: number;
+        } | unknown,
+        count: number;
         status: 'Online' | 'Offline';
         isReachable: boolean;
         output: string;
@@ -26,5 +37,5 @@ export namespace IPScan {
         timeout?: number;
     }
 
-    export type Discovered = Pick<PingHost.Response, 'host' | 'responseMs'>;
+    export type Discovered = Pick<PingHost.Response, 'host' | 'latency'>;
 }
