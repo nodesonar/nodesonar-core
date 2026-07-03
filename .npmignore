@@ -1,8 +1,10 @@
 # Source
 src/
 tsconfig.json
+tsconfig.base.json
 
 # Dev/config
+.github/
 .gitignore
 .eslintrc*
 .prettierrc*
@@ -13,6 +15,7 @@ tsconfig.json
 **/*.test.ts
 **/*.spec.ts
 __tests__/
+tests/
 
 # Misc
 .DS_Store
