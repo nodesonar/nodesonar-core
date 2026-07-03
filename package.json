@@ -2,6 +2,10 @@
   "name": "@nodesonar/core",
   "version": "0.2.1",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodesonar/nodesonar-core"
+    }, 
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
