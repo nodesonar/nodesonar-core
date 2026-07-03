@@ -1,7 +1,7 @@
 {
   "name": "@nodesonar/core",
   "version": "0.2.2",
-  "description": "",
+  "description": "nodesonar core library",
   "repository": {
     "type": "git",
     "url": "https://github.com/nodesonar/nodesonar-core"
