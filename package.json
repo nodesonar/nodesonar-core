@@ -1,6 +1,6 @@
 {
   "name": "@nodesonar/core",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "nodesonar core library",
   "repository": {
     "type": "git",
