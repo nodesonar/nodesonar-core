@@ -8,6 +8,7 @@
     "deploy": "npm run build && npm publish --access public",
     "build": "npm run lint && npm test && tsc --build",
     "build:watch": "tsc --build --watch",
+    "build:ci": "tsc --build",
     "test": "jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
