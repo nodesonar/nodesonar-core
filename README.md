@@ -1,10 +1,10 @@
 # @nodesonar/core
 
-[![NPM Version](https://img.shields.io/npm/v/@nodesonar/core)](https://www.npmjs.com/package/nodesonar/core)
-[![NPM Downloads](https://img.shields.io/npm/dm/@nodesonar/core)](https://www.npmjs.com/package/nodesonar/core)
+[![NPM Version](https://img.shields.io/npm/v/@nodesonar/core)](https://www.npmjs.com/package/@nodesonar/core)
+[![NPM Downloads](https://img.shields.io/npm/dm/@nodesonar/core)](https://www.npmjs.com/package/@nodesonar/core)
 [![CI](https://github.com/nodesonar/nodesonar-core/actions/workflows/ci.yml/badge.svg)](https://github.com/nodesonar/nodesonar-core/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/@nodesonar/core)](./LICENSE)
-[![Node Version](https://img.shields.io/node/v/@nodesonar/core)](https://www.npmjs.com/package/nodesonar/core)
+[![Node Version](https://img.shields.io/node/v/@nodesonar/core)](https://www.npmjs.com/package/@nodesonar/core)
 
 A TypeScript network scanning and monitoring toolkit for Node.js. Discover devices on your network, ping hosts, and poll devices at configurable intervals — all with a clean, typed API.
 
