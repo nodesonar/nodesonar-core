@@ -4,7 +4,7 @@ export const formatPingResponse = (pingResponse: PingHost.PingResponseBase): Pin
     return {
         host: pingResponse.host,
         latency: {
-            average: pingResponse.time,
+            average: pingResponse.avg,
             slowest: Number(pingResponse.max),
             fastest: Number(pingResponse.min),
         },

@@ -4,7 +4,7 @@
   "description": "nodesonar core library",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nodesonar/nodesonar-core"
+    "url": "git+https://github.com/nodesonar/nodesonar-core.git"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
