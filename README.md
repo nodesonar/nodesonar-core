@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/nodesonar/core)](https://www.npmjs.com/package/nodesonar/core)
 [![NPM Downloads](https://img.shields.io/npm/dm/nodesonar/core)](https://www.npmjs.com/package/nodesonar/core)
-[![CI](https://github.com/hugopage17/nodesonar-core/actions/workflows/ci.yml/badge.svg)](https://github.com/hugopage17/nodesonar-core/actions/workflows/ci.yml)
+[![CI](https://github.com/nodesonar/nodesonar-core/actions/workflows/ci.yml/badge.svg)](https://github.com/nodesonar/nodesonar-core/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/nodesonar/core)](./LICENSE)
 [![Node Version](https://img.shields.io/node/v/nodesonar/core)](https://www.npmjs.com/package/nodesonar/core)
 
