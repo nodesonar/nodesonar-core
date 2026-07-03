@@ -1,0 +1,20 @@
+# Source
+src/
+tsconfig.json
+
+# Dev/config
+.gitignore
+.eslintrc*
+.prettierrc*
+*.config.js
+*.config.ts
+
+# Tests
+**/*.test.ts
+**/*.spec.ts
+__tests__/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*

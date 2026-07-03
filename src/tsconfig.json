@@ -1,0 +1,20 @@
+// {
+//   "extends": "../tsconfig.base.json",
+//   "compilerOptions": {
+//     "rootDir": "..",
+//     "types": ["node", "jest"],
+//     "typeRoots": ["../node_modules/@types"]
+//   },
+//   "include": ["./**/*.test.ts", "../src/**/*.ts"],
+//   "exclude": ["../node_modules", "../dist"]
+// }
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist",
+    "rootDir": ".",
+    "composite": true
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["../node_modules", "../tests"]
+}
