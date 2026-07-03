@@ -12,9 +12,9 @@ A TypeScript network scanning and monitoring toolkit for Node.js. Discover devic
 
 ## Features
 
-- 🔍 **IP Range Scanning** — Discover reachable devices across CIDR, dash, and wildcard ranges
 - 📡 **Host Pinging** — Ping any host or IP address and get structured results
 - 🔄 **Device Polling** — Poll one or more hosts at configurable intervals with live callbacks
+- 🔍 **IP Range Scanning** — Discover reachable devices across CIDR, dash, and wildcard ranges
 - 🧠 **Flexible IP Range Parsing** — Supports CIDR, dash ranges, full IP-to-IP ranges, and wildcards
 - 💪 **Fully Typed** — Written in TypeScript with declaration files included
 
@@ -29,35 +29,6 @@ npm install @nodesonar/core
 ---
 
 ## Usage
-
-### IPScanner — Discover devices on your network
-
-```typescript
-import { IPScanner } from '@nodesonar/core';
-
-const scanner = new IPScanner({ timeout: 2 });
-
-// Scan a range and get all discovered devices
-const devices = await scanner.discover('192.168.1.0/24');
-console.log(devices);
-
-// Stream devices as they are found
-const devices = await scanner.discover('192.168.1.0-255', (device) => {
-  console.log(`Found: ${device.host} (${device.responseMs}ms)`);
-});
-```
-
-**Supported range formats:**
-
-| Format | Example |
-|---|---|
-| CIDR | `192.168.1.0/24` |
-| Short dash | `192.168.1.0-255` |
-| Full IP range | `192.168.1.0-192.168.1.100` |
-| Wildcard | `192.168.1.*` |
-| Single IP | `192.168.1.1` |
-
----
 
 ### Poller — Poll hosts at a configurable interval
 
@@ -109,13 +80,36 @@ console.log(result);
 
 ---
 
-## API
+### IPScanner — Discover devices on your network
 
-### `IPScanner`
+```typescript
+import { IPScanner } from '@nodesonar/core';
 
-| Method | Description |
+const scanner = new IPScanner({ timeout: 2 });
+
+// Scan a range and get all discovered devices
+const devices = await scanner.discover('192.168.1.0/24');
+console.log(devices);
+
+// Stream devices as they are found
+const devices = await scanner.discover('192.168.1.0-255', (device) => {
+  console.log(`Found: ${device.host} (${device.responseMs}ms)`);
+});
+```
+
+**Supported range formats:**
+
+| Format | Example |
 |---|---|
-| `discover(range, onDeviceFound?)` | Scans the given IP range and returns all reachable devices. Optionally streams results via callback. |
+| CIDR | `192.168.1.0/24` |
+| Short dash | `192.168.1.0-255` |
+| Full IP range | `192.168.1.0-192.168.1.100` |
+| Wildcard | `192.168.1.*` |
+| Single IP | `192.168.1.1` |
+
+---
+
+## API
 
 ### `Poller`
 
@@ -129,6 +123,12 @@ console.log(result);
 | `config` | Returns the current poller configuration. |
 
 ---
+
+### `IPScanner`
+
+| Method | Description |
+|---|---|
+| `discover(range, onDeviceFound?)` | Scans the given IP range and returns all reachable devices. Optionally streams results via callback. |
 
 ## Requirements
 
