@@ -5,7 +5,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "npm run lint && tsc --build",
+    "deploy": "npm run build && npm publish --access public",
+    "build": "npm run lint && npm test && tsc --build",
     "build:watch": "tsc --build --watch",
     "test": "jest",
     "lint": "eslint .",
@@ -22,6 +23,9 @@
         }
       ]
     }
+  },
+  "engines": {
+    "node": ">=22"
   },
   "keywords": [],
   "author": "",
