@@ -39,7 +39,8 @@ const poller = new Poller({ timeout: 2 });
 
 // Poll a single host every 5 seconds
 poller.pollHost({ host: '192.168.1.1', interval: 5000 }, (res) => {
-  console.log(`${res.host} is ${res.status} — ${res.responseMs}ms`);
+  console.log(`${res.host} is ${res.status}`);
+  console.log(`Latency — avg: ${res.latency.average}ms, fastest: ${res.latency.fastest}ms, slowest: ${res.latency.slowest}ms`);
 });
 
 // Poll multiple hosts simultaneously
@@ -72,7 +73,12 @@ console.log(result);
 //   host: '192.168.1.1',
 //   isReachable: true,
 //   status: 'Online',
-//   responseMs: 4.2,
+//   count: 4,
+//   latency: {
+//     average: 4.2,
+//     fastest: 3.1,
+//     slowest: 5.8
+//   },
 //   packetLoss: 0,
 //   output: '...'
 // }
@@ -93,7 +99,7 @@ console.log(devices);
 
 // Stream devices as they are found
 const devices = await scanner.discover('192.168.1.0-255', (device) => {
-  console.log(`Found: ${device.host} (${device.responseMs}ms)`);
+  console.log(`Found: ${device.host} (${device.latency.average}ms)`);
 });
 ```
 
@@ -129,6 +135,56 @@ const devices = await scanner.discover('192.168.1.0-255', (device) => {
 | Method | Description |
 |---|---|
 | `discover(range, onDeviceFound?)` | Scans the given IP range and returns all reachable devices. Optionally streams results via callback. |
+
+---
+
+## Types
+
+### `PingHost.Response`
+
+```typescript
+interface Response {
+  host: string;
+  status: 'Online' | 'Offline';
+  isReachable: boolean;
+  count: number;
+  latency: {
+    average: number;
+    fastest: number;
+    slowest: number;
+  } | unknown;
+  packetLoss: number;
+  output: string;
+}
+```
+
+### `PingHost.Options`
+
+```typescript
+interface Options {
+  count?: number;
+  timeout?: number;
+  packetSize?: number;
+  extra?: string[];
+}
+```
+
+### `PingHost.PollHostConfig`
+
+```typescript
+interface PollHostConfig {
+  host: string;
+  interval?: number; // ms, default 1000
+}
+```
+
+### `IPScan.Discovered`
+
+```typescript
+type Discovered = Pick<PingHost.Response, 'host' | 'latency'>;
+```
+
+---
 
 ## Requirements
 
