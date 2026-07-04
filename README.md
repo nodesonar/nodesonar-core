@@ -40,7 +40,11 @@ const poller = new Poller({ timeout: 2 });
 // Poll a single host every 5 seconds
 poller.pollHost({ host: '192.168.1.1', interval: 5000 }, (res) => {
   console.log(`${res.host} is ${res.status}`);
-  console.log(`Latency — avg: ${res.latency.average}ms, fastest: ${res.latency.fastest}ms, slowest: ${res.latency.slowest}ms`);
+  console.log(`Packets — sent: ${res.count}, received: ${res.packetsReceived}, loss: ${res.packetLoss * 100}%`);
+
+  if (res.latency) {
+    console.log(`Latency — avg: ${res.latency.average}ms, fastest: ${res.latency.fastest}ms, slowest: ${res.latency.slowest}ms`);
+  }
 });
 
 // Poll multiple hosts simultaneously
@@ -74,12 +78,25 @@ console.log(result);
 //   isReachable: true,
 //   status: 'Online',
 //   count: 4,
+//   packetsReceived: 4,
 //   latency: {
 //     average: 4.2,
 //     fastest: 3.1,
 //     slowest: 5.8
 //   },
 //   packetLoss: 0,
+//   output: '...'
+// }
+
+// When host is unreachable
+// {
+//   host: '192.168.1.1',
+//   isReachable: false,
+//   status: 'Offline',
+//   count: 4,
+//   packetsReceived: 0,
+//   latency: null,
+//   packetLoss: 1,
 //   output: '...'
 // }
 ```
@@ -99,7 +116,7 @@ console.log(devices);
 
 // Stream devices as they are found
 const devices = await scanner.discover('192.168.1.0-255', (device) => {
-  console.log(`Found: ${device.host} (${device.latency.average}ms)`);
+  console.log(`Found: ${device.host}`);
 });
 ```
 
@@ -148,12 +165,13 @@ interface Response {
   status: 'Online' | 'Offline';
   isReachable: boolean;
   count: number;
+  packetsReceived: number;
   latency: {
     average: number;
     fastest: number;
     slowest: number;
-  } | unknown;
-  packetLoss: number;
+  } | null;
+  packetLoss: number; // 0–1 (e.g. 0.75 = 75% loss)
   output: string;
 }
 ```

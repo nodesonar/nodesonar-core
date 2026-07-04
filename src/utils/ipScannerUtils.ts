@@ -1,4 +1,4 @@
-export function expandIpRange(range: string): string[] {
+export const expandIpRange = (range: string): string[] => {
     // Single IP
     if (/^\d{1,3}(\.\d{1,3}){3}$/.test(range)) {
         return [range];
@@ -21,9 +21,9 @@ export function expandIpRange(range: string): string[] {
     }
 
     throw new Error(`Unrecognised IP range format: ${range}`);
-}
+};
 
-function expandCidr(cidr: string): string[] {
+export const expandCidr = (cidr: string): string[] => {
     const [baseIp, prefixStr] = cidr.split('/');
     const prefix = parseInt(prefixStr, 10);
 
@@ -35,9 +35,9 @@ function expandCidr(cidr: string): string[] {
     const count = Math.pow(2, hostBits);
 
     return Array.from({ length: count }, (_, i) => numberToIp(networkAddress + i));
-}
+};
 
-function expandDashRange(range: string): string[] {
+export const expandDashRange = (range: string): string[] => {
     const parts = range.split('-');
 
     // Full IP-to-IP range: 192.168.1.0-192.168.1.255
@@ -69,9 +69,9 @@ function expandDashRange(range: string): string[] {
     }
 
     throw new Error(`Invalid dash range: ${range}`);
-}
+};
 
-function expandWildcard(range: string): string[] {
+export const expandWildcard = (range: string): string[] => {
     const octets = range.split('.');
 
     if (octets.length !== 4) throw new Error(`Invalid wildcard range: ${range}`);
@@ -95,9 +95,9 @@ function expandWildcard(range: string): string[] {
     build(0, []);
 
     return results;
-}
+};
 
-function ipToNumber(ip: string): number {
+export const ipToNumber = (ip: string): number => {
     const octets = ip.split('.').map(Number);
 
     if (octets.length !== 4 || octets.some((o) => o < 0 || o > 255)) {
@@ -105,13 +105,13 @@ function ipToNumber(ip: string): number {
     }
 
     return (octets[0] << 24 | octets[1] << 16 | octets[2] << 8 | octets[3]) >>> 0;
-}
+};
 
-function numberToIp(num: number): string {
+export const numberToIp = (num: number): string => {
     return [
         (num >>> 24) & 255,
         (num >>> 16) & 255,
         (num >>> 8) & 255,
         num & 255,
     ].join('.');
-}
+};

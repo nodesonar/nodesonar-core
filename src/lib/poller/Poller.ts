@@ -1,3 +1,4 @@
+import { NodeSonarError } from '../error_base/NodeSonarError';
 import { PingBase } from '../ping_base/PingBase';
 
 import type { PingHost } from '../../types';
@@ -26,7 +27,10 @@ export class Poller extends PingBase {
         const { host } = config;
         const interval = config?.interval ?? 1000;
 
-        this.stopPolling(host);
+        if (this.intervals.get(host)) {
+            this.stopPolling(host);
+        }
+
         const id = setInterval(async () => {
             const res = await this.ping(host);
 
@@ -46,6 +50,8 @@ export class Poller extends PingBase {
         if (id) {
             clearInterval(id);
             this.intervals.delete(host);
+        } else {
+            throw new NodeSonarError(`Host '${host}' is not currently being polled`);
         }
     }
 
