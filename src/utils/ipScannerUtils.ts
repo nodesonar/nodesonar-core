@@ -1,3 +1,5 @@
+import { NodeSonarError } from '../clients/error';
+
 export const expandIpRange = (range: string): string[] => {
     // Single IP
     if (/^\d{1,3}(\.\d{1,3}){3}$/.test(range)) {
@@ -20,14 +22,14 @@ export const expandIpRange = (range: string): string[] => {
         return expandWildcard(range);
     }
 
-    throw new Error(`Unrecognised IP range format: ${range}`);
+    throw new NodeSonarError(`Unrecognised IP range format: ${range}`);
 };
 
 export const expandCidr = (cidr: string): string[] => {
     const [baseIp, prefixStr] = cidr.split('/');
     const prefix = parseInt(prefixStr, 10);
 
-    if (prefix < 0 || prefix > 32) throw new Error(`Invalid CIDR prefix: ${prefix}`);
+    if (prefix < 0 || prefix > 32) throw new NodeSonarError(`Invalid CIDR prefix: ${prefix}`);
 
     const baseNum = ipToNumber(baseIp);
     const hostBits = 32 - prefix;
@@ -45,7 +47,7 @@ export const expandDashRange = (range: string): string[] => {
         const start = ipToNumber(parts[0]);
         const end = ipToNumber(parts[1]);
 
-        if (start > end) throw new Error('Start IP must be <= end IP');
+        if (start > end) throw new NodeSonarError('Start IP must be <= end IP');
 
         return Array.from({ length: end - start + 1 }, (_, i) => numberToIp(start + i));
     }
@@ -55,12 +57,12 @@ export const expandDashRange = (range: string): string[] => {
         const startEnd = parseInt(parts[1], 10);
         const octets = parts[0].split('.');
 
-        if (octets.length !== 4) throw new Error(`Invalid IP range: ${range}`);
+        if (octets.length !== 4) throw new NodeSonarError(`Invalid IP range: ${range}`);
 
         const startOctet = parseInt(octets[3], 10);
         const prefix = octets.slice(0, 3).join('.');
 
-        if (startOctet > startEnd) throw new Error('Start octet must be <= end octet');
+        if (startOctet > startEnd) throw new NodeSonarError('Start octet must be <= end octet');
 
         return Array.from(
             { length: startEnd - startOctet + 1 },
@@ -68,13 +70,13 @@ export const expandDashRange = (range: string): string[] => {
         );
     }
 
-    throw new Error(`Invalid dash range: ${range}`);
+    throw new NodeSonarError(`Invalid dash range: ${range}`);
 };
 
 export const expandWildcard = (range: string): string[] => {
     const octets = range.split('.');
 
-    if (octets.length !== 4) throw new Error(`Invalid wildcard range: ${range}`);
+    if (octets.length !== 4) throw new NodeSonarError(`Invalid wildcard range: ${range}`);
 
     const results: string[] = [];
 
@@ -101,7 +103,7 @@ export const ipToNumber = (ip: string): number => {
     const octets = ip.split('.').map(Number);
 
     if (octets.length !== 4 || octets.some((o) => o < 0 || o > 255)) {
-        throw new Error(`Invalid IP address: ${ip}`);
+        throw new NodeSonarError(`Invalid IP address: ${ip}`);
     }
 
     return (octets[0] << 24 | octets[1] << 16 | octets[2] << 8 | octets[3]) >>> 0;
