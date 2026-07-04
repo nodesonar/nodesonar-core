@@ -4,14 +4,17 @@ import { formatPingResponse } from '../../utils/pingUtils';
 
 import type { PingHost } from '../../types';
 
+const DEFAULT_OPTIONS: Required<PingHost.Options> = {
+    count: 1,
+    timeout: 10,
+    packetSize: 32,
+    extra: [],
+};
+
 export abstract class PingBase {
-    protected readonly options: PingHost.Options;
+    protected readonly options: Required<PingHost.Options>;
     constructor(options?: PingHost.Options) {
-        this.options = options ?? {
-            count: 1,
-            timeout: 10,
-            packetSize: 32,
-        };
+        this.options = { ...DEFAULT_OPTIONS, ...options };
     }
 
     protected async ping(host: string): Promise<PingHost.Response> {
@@ -22,6 +25,6 @@ export abstract class PingBase {
             min_reply: this.options.count,
         });
 
-        return formatPingResponse({ ...response, count: this.options.count as number });
+        return formatPingResponse({ ...response, count: this.options.count, host, packetLoss: response.packetLoss.toString() });
     }
 };

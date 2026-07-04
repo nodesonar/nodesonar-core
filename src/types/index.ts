@@ -1,8 +1,9 @@
 import type { PingResponse } from 'ping/types/parser/base';
 
 export namespace PingHost {
-    export interface PingResponseBase extends PingResponse {
+    export interface PingResponseBase extends Omit<PingResponse, 'packetLoss'> {
         count: number;
+        packetLoss: string;
     }
 
     export interface Response {
@@ -11,12 +12,13 @@ export namespace PingHost {
             average: number;
             fastest: number;
             slowest: number;
-        } | unknown,
+        } | null,
         count: number;
         status: 'Online' | 'Offline';
         isReachable: boolean;
         output: string;
         packetLoss: number;
+        packetsReceived: number;
     };
 
     export interface Options {
