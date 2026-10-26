@@ -43,7 +43,17 @@ export namespace IPScan {
 }
 
 export namespace SpeedTest {
-    export interface Options {
-        host?: string;
+    export namespace Measure {
+        export interface Options {
+            bytes?: number;
+            streams?: number;
+        }
+
+        export type Response = number;
+
+        export interface LatencyResponse {
+            median: number;
+            jitter: number;
+        }
     }
 }
