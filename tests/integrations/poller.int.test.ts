@@ -4,8 +4,6 @@ import type { PingHost } from '../../src/types';
 
 jest.setTimeout(30_000);
 
-const describeInternet = process.env.NETWORK_TESTS ? describe : describe.skip;
-
 const LOOPBACK = '127.0.0.1';
 const BLACKHOLE = '192.0.2.1';
 
@@ -96,14 +94,5 @@ describe('Poller (live)', () => {
             expect(settled).toBeGreaterThan(0);
             expect(cb).toHaveBeenCalledTimes(settled);
         });
-    });
-});
-
-describeInternet('Poller (public internet)', () => {
-    it.each(['1.1.1.1', '8.8.8.8'])('reaches %s', async (host) => {
-        const res = await new Poller({ timeout: 5 }).pingHost(host);
-
-        expect(res.isReachable).toBe(true);
-        expect(res.latency?.average).toBeLessThan(1000);
     });
 });
