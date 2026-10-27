@@ -1,4 +1,4 @@
-import { formatPingResponse } from '../../src/utils/pingUtils';
+import { formatPingResponse } from '../../src/lib/ping_base/helper';
 
 const basePingResponse = {
     inputHost: '192.168.1.1',

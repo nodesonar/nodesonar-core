@@ -1,4 +1,4 @@
-import type { PingHost } from '../types';
+import type { PingHost } from '../../types';
 
 export const formatPingResponse = (pingResponse: PingHost.PingResponseBase): PingHost.Response => {
     return {

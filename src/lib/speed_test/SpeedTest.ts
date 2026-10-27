@@ -1,20 +1,14 @@
 import { randomBytes } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 
+import { asyncArrayContructor } from '../../utils';
+
 import { mbps } from './helper';
+import { SpeedTestHost } from './SpeedTestHost';
 
 import type { SpeedTest as SPNS } from '../../types';
 
-export class SpeedTest {
-    private readonly host: string;
-
-    /**
-     * Creates a speed test client targeting Cloudflare's public speed test endpoints.
-     */
-    constructor() {
-        this.host = 'https://speed.cloudflare.com';
-    }
-
+export class SpeedTest extends SpeedTestHost {
     /**
      * Measures round-trip latency and jitter by issuing sequential zero-byte requests.
      * Latency is an HTTP round trip, so it will read slightly higher than ICMP ping.
@@ -44,18 +38,15 @@ export class SpeedTest {
         let total = 0;
         const t0 = performance.now();
 
-        await Promise.all(
-            Array.from({ length: streams }, async () => {
-                const res = await fetch(`${this.host}/__down?bytes=${bytes}`);
+        await asyncArrayContructor(streams, async () => {
+            const res = await this.executeDownloadSpeed(bytes);
 
-                if (res.body) {
-                    for await (const chunk of res.body) total += chunk.length;
-                } else {
-                    total += 0;
-                }
-
-            }),
-        );
+            if (res.body) {
+                for await (const chunk of res.body) total += chunk.length;
+            } else {
+                total += 0;
+            }
+        });
 
         return mbps(total, performance.now() - t0);
     }
@@ -69,16 +60,13 @@ export class SpeedTest {
      */
     public async upload(options?: SPNS.Measure.Options): Promise<SPNS.Measure.Response> {
         const { bytes = 10_000_000, streams = 3 } = options ?? {};
-        const payload = randomBytes(bytes);
         const t0 = performance.now();
 
-        await Promise.all(
-            Array.from({ length: streams }, async () => {
-                const res = await fetch(`${this.host}/__up`, { method: 'POST', body: payload });
+        await asyncArrayContructor(streams, async () => {
+            const res = await this.executeUploadSpeed(randomBytes(bytes));
 
-                await res.arrayBuffer();
-            }),
-        );
+            await res.arrayBuffer();
+        });
 
         return mbps(bytes * streams, performance.now() - t0);
     }
@@ -89,7 +77,7 @@ export class SpeedTest {
  */
     private async timeRequest(): Promise<number> {
         const t0 = performance.now();
-        const res = await fetch(`${this.host}/__down?bytes=0`);
+        const res = await this.executeDownloadSpeed();
 
         await res.arrayBuffer();
 

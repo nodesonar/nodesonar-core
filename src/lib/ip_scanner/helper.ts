@@ -1,23 +1,19 @@
-import { NodeSonarError } from '../clients/error';
+import { NodeSonarError } from '../../lib/error_base/NodeSonarError';
+import { arrayContructor } from '../../utils';
 
 export const expandIpRange = (range: string): string[] => {
-    // Single IP
     if (/^\d{1,3}(\.\d{1,3}){3}$/.test(range)) {
         return [range];
     }
 
-    // CIDR notation: 192.168.1.0/24
     if (range.includes('/')) {
         return expandCidr(range);
     }
 
-    // Dash range on last octet: 192.168.1.0-255
-    // or full IP range: 192.168.1.0-192.168.1.255
     if (range.includes('-')) {
         return expandDashRange(range);
     }
 
-    // Wildcard: 192.168.1.*
     if (range.includes('*')) {
         return expandWildcard(range);
     }
@@ -36,23 +32,21 @@ export const expandCidr = (cidr: string): string[] => {
     const networkAddress = baseNum & (~0 << hostBits);
     const count = Math.pow(2, hostBits);
 
-    return Array.from({ length: count }, (_, i) => numberToIp(networkAddress + i));
+    return numberToIpMap(count, networkAddress);
 };
 
 export const expandDashRange = (range: string): string[] => {
     const parts = range.split('-');
 
-    // Full IP-to-IP range: 192.168.1.0-192.168.1.255
     if (parts.length === 2 && parts[1].includes('.')) {
         const start = ipToNumber(parts[0]);
         const end = ipToNumber(parts[1]);
 
         if (start > end) throw new NodeSonarError('Start IP must be <= end IP');
 
-        return Array.from({ length: end - start + 1 }, (_, i) => numberToIp(start + i));
+        return numberToIpMap(end - start + 1, start);
     }
 
-    // Short dash range on last octet: 192.168.1.0-255
     if (parts.length === 2) {
         const startEnd = parseInt(parts[1], 10);
         const octets = parts[0].split('.');
@@ -64,10 +58,7 @@ export const expandDashRange = (range: string): string[] => {
 
         if (startOctet > startEnd) throw new NodeSonarError('Start octet must be <= end octet');
 
-        return Array.from(
-            { length: startEnd - startOctet + 1 },
-            (_, i) => `${prefix}.${startOctet + i}`,
-        );
+        return arrayContructor(startEnd - startOctet + 1, (_, i) => `${prefix}.${startOctet + i}`);
     }
 
     throw new NodeSonarError(`Invalid dash range: ${range}`);
@@ -117,3 +108,5 @@ export const numberToIp = (num: number): string => {
         num & 255,
     ].join('.');
 };
+
+export const numberToIpMap = (count: number, num: number): string[] => arrayContructor<string>(count, (_, i) => numberToIp(num + i));

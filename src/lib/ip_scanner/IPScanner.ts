@@ -1,5 +1,6 @@
-import { expandIpRange } from '../../utils/ipScannerUtils';
 import { PingBase } from '../ping_base/PingBase';
+
+import { expandIpRange } from './helper';
 
 import type { IPScan } from '../../types';
 

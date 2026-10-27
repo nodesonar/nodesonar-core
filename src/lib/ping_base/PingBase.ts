@@ -1,6 +1,6 @@
 import ping from 'ping';
 
-import { formatPingResponse } from '../../utils/pingUtils';
+import { formatPingResponse } from './helper';
 
 import type { PingHost } from '../../types';
 
