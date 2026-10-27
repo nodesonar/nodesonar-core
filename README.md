@@ -12,12 +12,12 @@ A TypeScript network scanning and monitoring toolkit for Node.js. Discover devic
 
 ## Features
 
-- 📡 **Host Pinging** — Ping any host or IP address and get structured results
-- 🔄 **Device Polling** — Poll one or more hosts at configurable intervals with live callbacks
-- 🔍 **IP Range Scanning** — Discover reachable devices across CIDR, dash, and wildcard ranges
-- 🧠 **Flexible IP Range Parsing** — Supports CIDR, dash ranges, full IP-to-IP ranges, and wildcards
-- ⚡ **Speed Testing** — Measure latency, jitter, download and upload throughput
-- 💪 **Fully Typed** — Written in TypeScript with declaration files included
+- 📡 [**Host Pinging**](#ping-a-host-directly) — Ping any host or IP address and get structured results
+- 🔄 [**Device Polling**](#poller--poll-hosts-at-a-configurable-interval) — Poll one or more hosts at configurable intervals with live callbacks
+- 🔍 [**IP Range Scanning**](#ipscanner--discover-devices-on-your-network) — Discover reachable devices across CIDR, dash, and wildcard ranges
+- 🧠 [**Flexible IP Range Parsing**](#ipscanner--discover-devices-on-your-network) — Supports CIDR, dash ranges, full IP-to-IP ranges, and wildcards
+- ⚡ [**Speed Testing**](#speedtest--measure-internet-speed) — Measure latency, jitter, download and upload throughput
+- 💪 [**Fully Typed**](#types) — Written in TypeScript with declaration files included
 
 ---
 

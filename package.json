@@ -13,7 +13,8 @@
     "build": "npm run lint && npm test && tsc --build",
     "build:watch": "tsc --build --watch",
     "build:ci": "tsc --build",
-    "test": "jest",
+    "test": "jest --testPathIgnorePatterns \\.int\\.test\\.ts$",
+    "test:integration": "jest --testPathPatterns \\.int\\.test\\.ts$ --runInBand",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky"
