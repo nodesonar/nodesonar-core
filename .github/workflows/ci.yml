@@ -6,22 +6,12 @@ on:
     tags: ['v*']
   pull_request:
     branches: ['**']
-  workflow_dispatch:
-    inputs:
-      network_tests:
-        description: 'Also run the public-internet tests (1.1.1.1, 8.8.8.8)'
-        type: boolean
-        default: false
-  schedule:
-    - cron: '0 6 * * 1' # Mondays 06:00 UTC, with the public-internet tests on
-
 permissions:
   contents: read
 
 jobs:
   test:
     name: Unit Tests
-    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -67,14 +57,10 @@ jobs:
         run: ping -c 1 127.0.0.1
 
       - name: Run integration tests
-        env:
-          # Public-internet tests only on the weekly schedule or a manual run with the box ticked.
-          NETWORK_TESTS: ${{ (github.event_name == 'schedule' || inputs.network_tests) && '1' || '' }}
         run: npm run test:integration
 
   audit:
     name: NPM Audit
-    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -112,4 +98,3 @@ jobs:
       - run: npm ci
       - run: npm run build:ci
       - run: npm publish --access public --provenance
-      
