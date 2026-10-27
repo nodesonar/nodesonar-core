@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/npm/l/@nodesonar/core)](./LICENSE)
 [![Node Version](https://img.shields.io/node/v/@nodesonar/core)](https://www.npmjs.com/package/@nodesonar/core)
 
-A TypeScript network scanning and monitoring toolkit for Node.js. Discover devices on your network, ping hosts, and poll devices at configurable intervals — all with a clean, typed API.
+A TypeScript network scanning and monitoring toolkit for Node.js. Discover devices on your network, ping hosts, poll devices at configurable intervals, and measure internet speed — all with a clean, typed API.
 
 ---
 
@@ -16,6 +16,7 @@ A TypeScript network scanning and monitoring toolkit for Node.js. Discover devic
 - 🔄 **Device Polling** — Poll one or more hosts at configurable intervals with live callbacks
 - 🔍 **IP Range Scanning** — Discover reachable devices across CIDR, dash, and wildcard ranges
 - 🧠 **Flexible IP Range Parsing** — Supports CIDR, dash ranges, full IP-to-IP ranges, and wildcards
+- ⚡ **Speed Testing** — Measure latency, jitter, download and upload throughput
 - 💪 **Fully Typed** — Written in TypeScript with declaration files included
 
 ---
@@ -72,7 +73,6 @@ import { Poller } from '@nodesonar/core';
 const poller = new Poller();
 
 const result = await poller.pingHost('192.168.1.1');
-console.log(result);
 // {
 //   host: '192.168.1.1',
 //   isReachable: true,
@@ -112,10 +112,9 @@ const scanner = new IPScanner({ timeout: 2 });
 
 // Scan a range and get all discovered devices
 const devices = await scanner.discover('192.168.1.0/24');
-console.log(devices);
 
 // Stream devices as they are found
-const devices = await scanner.discover('192.168.1.0-255', (device) => {
+const streamed = await scanner.discover('192.168.1.0-255', (device) => {
   console.log(`Found: ${device.host}`);
 });
 ```
@@ -131,6 +130,43 @@ const devices = await scanner.discover('192.168.1.0-255', (device) => {
 | Single IP | `192.168.1.1` |
 
 ---
+
+### SpeedTest — Measure internet speed
+
+```typescript
+import { SpeedTest } from '@nodesonar/core';
+
+const speedTest = new SpeedTest();
+
+// Latency and jitter (ms), from 10 sequential round trips by default
+const { median, jitter } = await speedTest.latency();
+console.log(`Latency: ${median.toFixed(1)}ms (jitter ${jitter.toFixed(1)}ms)`);
+
+// Download and upload speeds in Mbps, using the defaults
+const down = await speedTest.download();
+const up = await speedTest.upload();
+console.log(`Download: ${down.toFixed(1)} Mbps, upload: ${up.toFixed(1)} Mbps`);
+
+// Customise the test. Every option is optional and falls back to its default.
+await speedTest.latency(20);
+await speedTest.download({ bytes: 50_000_000, streams: 8 });
+await speedTest.upload({ streams: 6 });
+```
+
+**Options**
+
+| Option | Applies to | Default | Description |
+|---|---|---|---|
+| `samples` (argument to `latency`) | `latency` | `10` | Number of sequential requests to sample. |
+| `bytes` | `download`, `upload` | `25,000,000` / `10,000,000` | Payload size per stream, in bytes. |
+| `streams` | `download`, `upload` | `4` / `3` | Number of parallel connections. |
+
+**Notes**
+
+- Latency is an HTTP round trip, so it reads slightly higher than ICMP ping.
+- Download and upload use parallel streams because a single TCP connection rarely saturates a fast link. Raise `streams` or `bytes` if results plateau on a gigabit connection.
+- The defaults transfer about 100 MB down and 30 MB up per test, so keep that in mind on metered connections.
+- Results are a good rough measurement but won't match Ookla exactly.
 
 ## API
 
@@ -154,6 +190,14 @@ const devices = await scanner.discover('192.168.1.0-255', (device) => {
 | `discover(range, onDeviceFound?)` | Scans the given IP range and returns all reachable devices. Optionally streams results via callback. |
 
 ---
+
+### `SpeedTest`
+
+| Method | Description |
+|---|---|
+| `latency(samples?)` | Measures median round-trip latency and jitter in ms using sequential requests. |
+| `download(options?)` | Measures download throughput in Mbps across parallel streams. |
+| `upload(options?)` | Measures upload throughput in Mbps across parallel streams. |
 
 ## Types
 
@@ -202,12 +246,37 @@ interface PollHostConfig {
 type Discovered = Pick<PingHost.Response, 'host' | 'latency'>;
 ```
 
+### `SpeedTest.Measure.Options`
+
+```typescript
+interface Options {
+  bytes?: number;   // payload size per stream, default 25,000,000 (download) / 10,000,000 (upload)
+  streams?: number; // parallel connections, default 4 (download) / 3 (upload)
+}
+```
+
+### `SpeedTest.Measure.LatencyResponse`
+
+```typescript
+interface LatencyResponse {
+  median: number; // ms
+  jitter: number; // ms, mean absolute difference between consecutive samples
+}
+```
+
+### `SpeedTest.Measure.Response`
+
+```typescript
+type Response = number; // Mbps
+```
+
 ---
 
 ## Requirements
 
 - Node.js 22+
 - On Linux, raw socket access may require running with `sudo` or granting cap_net_raw capabilities
+- Outbound HTTPS access to the speed test host for `SpeedTest`
 
 ---
 

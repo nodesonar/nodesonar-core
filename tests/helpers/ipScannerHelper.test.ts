@@ -1,4 +1,4 @@
-import { expandIpRange } from '../../src/utils/ipScannerUtils';
+import { expandIpRange } from '../../src/lib/ip_scanner/helper';
 
 describe('expandIpRange', () => {
 
