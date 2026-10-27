@@ -14,7 +14,7 @@
     "build:watch": "tsc --build --watch",
     "build:ci": "tsc --build",
     "test": "jest --testPathIgnorePatterns \\.int\\.test\\.ts$",
-    "test:integration": "jest --testPathPatterns \\.int\\.test\\.ts$ --runInBand",
+    "test:integration": "NETWORK_TESTS=1 jest --testPathPatterns \\.int\\.test\\.ts$ --runInBand",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky"
