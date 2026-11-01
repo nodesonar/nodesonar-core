@@ -25,6 +25,6 @@ export abstract class PingBase {
             min_reply: this.options.count,
         });
 
-        return formatPingResponse({ ...response, count: this.options.count, host, packetLoss: response.packetLoss.toString() });
+        return formatPingResponse({ ...response, count: this.options.count, host });
     }
 };

@@ -3,10 +3,10 @@ import type { PingResponse } from 'ping/types/parser/base';
 export namespace PingHost {
     export interface PingResponseBase extends Omit<PingResponse, 'packetLoss'> {
         count: number;
-        packetLoss: string;
+        packetLoss: number | 'unknown';
     }
 
-    export interface Response {
+    interface ResponseBase {
         host: string;
         latency: {
             average: number;
@@ -21,6 +21,24 @@ export namespace PingHost {
         packetsReceived: number;
         timestamp: string;
     };
+
+    export interface ResponseOnline extends ResponseBase {
+        latency: {
+            average: number;
+            fastest: number;
+            slowest: number;
+        },
+        status: 'Online';
+        isReachable: true;
+    };
+
+    export interface ResponseOffline extends ResponseBase {
+        latency: null
+        status: 'Offline';
+        isReachable: false;
+    };
+
+    export type Response = ResponseOnline | ResponseOffline;
 
     export interface Options {
         count?: number;

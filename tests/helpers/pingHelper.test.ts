@@ -11,7 +11,7 @@ const basePingResponse = {
     max: '15.0',
     avg: '12.5',
     count: 4,
-    packetLoss: '0',
+    packetLoss: 0,
     stddev: '1.2',
 };
 
@@ -117,31 +117,37 @@ describe('formatPingResponse', () => {
 
     describe('packetLoss', () => {
         it('should return 0 when there is no packet loss', () => {
-            const result = formatPingResponse({ ...basePingResponse, packetLoss: '0.000' });
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 0.000 });
 
             expect(result.packetLoss).toBe(0);
         });
 
         it('should return 0.25 when packet loss is 25%', () => {
-            const result = formatPingResponse({ ...basePingResponse, packetLoss: '25.000' });
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 25.000 });
 
             expect(result.packetLoss).toBe(0.25);
         });
 
         it('should return 0.5 when packet loss is 50%', () => {
-            const result = formatPingResponse({ ...basePingResponse, packetLoss: '50.000' });
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 50.000 });
 
             expect(result.packetLoss).toBe(0.5);
         });
 
         it('should return 0.75 when packet loss is 75%', () => {
-            const result = formatPingResponse({ ...basePingResponse, packetLoss: '75.000' });
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 75.000 });
 
             expect(result.packetLoss).toBe(0.75);
         });
 
         it('should return 1 when packet loss is 100%', () => {
-            const result = formatPingResponse({ ...basePingResponse, packetLoss: '100.000' });
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 100.000 });
+
+            expect(result.packetLoss).toBe(1);
+        });
+
+        it('should return 1 when packet loss is unknown', () => {
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 'unknown' });
 
             expect(result.packetLoss).toBe(1);
         });
@@ -149,31 +155,31 @@ describe('formatPingResponse', () => {
 
     describe('packetsReceived', () => {
         it('should return full count when there is no packet loss', () => {
-            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: '0.000' });
+            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: 0.000 });
 
             expect(result.packetsReceived).toBe(4);
         });
 
         it('should return 3 when 1 of 4 packets lost', () => {
-            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: '25.000' });
+            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: 25.000 });
 
             expect(result.packetsReceived).toBe(3);
         });
 
         it('should return 2 when 2 of 4 packets lost', () => {
-            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: '50.000' });
+            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: 50.000 });
 
             expect(result.packetsReceived).toBe(2);
         });
 
         it('should return 1 when 3 of 4 packets lost', () => {
-            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: '75.000' });
+            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: 75.000 });
 
             expect(result.packetsReceived).toBe(1);
         });
 
         it('should return 0 when all packets lost', () => {
-            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: '100.000' });
+            const result = formatPingResponse({ ...basePingResponse, count: 4, packetLoss: 100.000 });
 
             expect(result.packetsReceived).toBe(0);
         });

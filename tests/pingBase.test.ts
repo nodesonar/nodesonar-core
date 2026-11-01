@@ -27,7 +27,7 @@ describe('PingBase', () => {
     const formatted = { formatted: true } as unknown as PingHost.Response;
 
     const probeResponse = (overrides: Record<string, unknown> = {}): Awaited<ReturnType<typeof ping.promise.probe>> =>
-        ({ alive: true, time: 12, packetLoss: '0.000', ...overrides }) as unknown as Awaited<ReturnType<typeof ping.promise.probe>>;
+        ({ alive: true, time: 12, packetLoss: 0.000, ...overrides }) as unknown as Awaited<ReturnType<typeof ping.promise.probe>>;
 
     beforeEach(() => {
         probe.mockReset().mockResolvedValue(probeResponse());
@@ -98,14 +98,14 @@ describe('PingBase', () => {
         });
 
         it('passes the probe response, count, host and a string packetLoss to the formatter', async () => {
-            probe.mockResolvedValue(probeResponse({ time: 42, packetLoss: '0.000' }));
+            probe.mockResolvedValue(probeResponse({ time: 42, packetLoss: 0.000 }));
 
             await new TestPinger({ count: 3 }).run('1.1.1.1');
 
             expect(format).toHaveBeenCalledWith({
                 alive: true,
                 time: 42,
-                packetLoss: '0.000',
+                packetLoss: 0.000,
                 count: 3,
                 host: '1.1.1.1',
             });
@@ -116,7 +116,7 @@ describe('PingBase', () => {
 
             await new TestPinger().run('1.1.1.1');
 
-            expect(format).toHaveBeenCalledWith(expect.objectContaining({ packetLoss: '25' }));
+            expect(format).toHaveBeenCalledWith(expect.objectContaining({ packetLoss: 25 }));
         });
 
         it('uses the requested host even if the probe response contains a different one', async () => {
@@ -136,12 +136,6 @@ describe('PingBase', () => {
 
             await expect(new TestPinger().run('1.1.1.1')).rejects.toThrow('spawn failed');
             expect(format).not.toHaveBeenCalled();
-        });
-
-        it('rejects when the probe response has no packetLoss (documents current behaviour)', async () => {
-            probe.mockResolvedValue(probeResponse({ packetLoss: undefined }));
-
-            await expect(new TestPinger().run('1.1.1.1')).rejects.toThrow(TypeError);
         });
 
         it('rejects when the formatter throws', async () => {
