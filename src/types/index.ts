@@ -19,6 +19,7 @@ export namespace PingHost {
         output: string;
         packetLoss: number;
         packetsReceived: number;
+        timestamp: string;
     };
 
     export interface Options {
