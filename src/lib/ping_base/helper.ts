@@ -14,5 +14,6 @@ export const formatPingResponse = (pingResponse: PingHost.PingResponseBase): Pin
         output: pingResponse.output,
         packetLoss: parseFloat(pingResponse.packetLoss) / 100,
         packetsReceived: Math.round(pingResponse.count * (1 - parseFloat(pingResponse.packetLoss) / 100)),
+        timestamp: new Date().toISOString(),
     };
 };
