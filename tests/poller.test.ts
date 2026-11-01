@@ -25,6 +25,12 @@ describe('Poller', () => {
         jest.restoreAllMocks();
     });
 
+    describe('config', () => {
+        it('returns the options held by the instance', () => {
+            expect(poller.config).toBe(poller['options']);
+        });
+    });
+
     describe('pollHost', () => {
         it('does not ping or call back before the first interval elapses', async () => {
             const cb = jest.fn();
