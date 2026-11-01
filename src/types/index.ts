@@ -42,7 +42,7 @@ export namespace IPScan {
     export type Discovered = Pick<PingHost.Response, 'host' | 'latency'>;
 }
 
-export namespace SpeedTest {
+export namespace SpeedTestConfig {
     export namespace Measure {
         export interface Options {
             bytes?: number;
