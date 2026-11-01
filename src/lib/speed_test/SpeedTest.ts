@@ -6,7 +6,7 @@ import { asyncArrayContructor } from '../../utils';
 import { mbps } from './helper';
 import { SpeedTestHost } from './SpeedTestHost';
 
-import type { SpeedTest as SPNS } from '../../types';
+import type { SpeedTestConfig } from '../../types';
 
 export class SpeedTest extends SpeedTestHost {
     /**
@@ -16,7 +16,7 @@ export class SpeedTest extends SpeedTestHost {
      * @returns A promise resolving to the median latency and jitter, both in ms. Jitter is the
      * mean absolute difference between consecutive samples.
      */
-    public async latency(samples = 10): Promise<SPNS.Measure.LatencyResponse> {
+    public async latency(samples = 10): Promise<SpeedTestConfig.Measure.LatencyResponse> {
         const times = await Array.fromAsync({ length: samples }, () => this.timeRequest());
 
         const sorted = [...times].sort((a, b) => a - b);
@@ -33,7 +33,7 @@ export class SpeedTest extends SpeedTestHost {
      * (default: 25,000,000) and `streams` is the number of parallel requests (default: 4).
      * @returns A promise resolving to the aggregate download speed in Mbps.
      */
-    public async download(options?: SPNS.Measure.Options): Promise<SPNS.Measure.Response> {
+    public async download(options?: SpeedTestConfig.Measure.Options): Promise<SpeedTestConfig.Measure.Response> {
         const { bytes = 25_000_000, streams = 4 } = options ?? {};
         let total = 0;
         const t0 = performance.now();
@@ -58,7 +58,7 @@ export class SpeedTest extends SpeedTestHost {
      * (default: 10,000,000) and `streams` is the number of parallel requests (default: 3).
      * @returns A promise resolving to the aggregate upload speed in Mbps.
      */
-    public async upload(options?: SPNS.Measure.Options): Promise<SPNS.Measure.Response> {
+    public async upload(options?: SpeedTestConfig.Measure.Options): Promise<SpeedTestConfig.Measure.Response> {
         const { bytes = 10_000_000, streams = 3 } = options ?? {};
         const t0 = performance.now();
 
