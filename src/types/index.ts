@@ -23,19 +23,19 @@ export namespace PingHost {
     };
 
     export interface ResponseOnline extends ResponseBase {
+        isReachable: true,
         latency: {
             average: number;
             fastest: number;
             slowest: number;
         },
         status: 'Online';
-        isReachable: true;
     };
 
     export interface ResponseOffline extends ResponseBase {
-        latency: null
-        status: 'Offline';
         isReachable: false;
+        latency: null;
+        status: 'Offline';
     };
 
     export type Response = ResponseOnline | ResponseOffline;

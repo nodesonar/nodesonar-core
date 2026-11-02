@@ -1,4 +1,4 @@
-import { formatPingResponse } from '../../src/lib/ping_base/helper';
+import { formatPingResponse, setPacketLoss } from '../../src/lib/ping_base/helper';
 
 const basePingResponse = {
     inputHost: '192.168.1.1',
@@ -146,10 +146,16 @@ describe('formatPingResponse', () => {
             expect(result.packetLoss).toBe(1);
         });
 
-        it('should return 1 when packet loss is unknown', () => {
-            const result = formatPingResponse({ ...basePingResponse, packetLoss: 'unknown' });
+        it('should return 1 when packet loss is unknown and alive is false', () => {
+            const result = formatPingResponse({ ...basePingResponse, alive: false, packetLoss: 'unknown' });
 
             expect(result.packetLoss).toBe(1);
+        });
+
+        it('should return 0 when packet loss is unknown and alive is true', () => {
+            const result = formatPingResponse({ ...basePingResponse, packetLoss: 'unknown' });
+
+            expect(result.packetLoss).toBe(0);
         });
     });
 
@@ -185,4 +191,51 @@ describe('formatPingResponse', () => {
         });
     });
 
+});
+
+type Params = Parameters<typeof setPacketLoss>[0];
+
+describe('setPacketLoss', () => {
+    describe('when packet loss is unknown', () => {
+        it('treats a reachable host as 0% loss', () => {
+            expect(setPacketLoss({ alive: true, packetLoss: 'unknown' })).toBe(0);
+        });
+
+        it('treats an unreachable host as 100% loss', () => {
+            expect(setPacketLoss({ alive: false, packetLoss: 'unknown' })).toBe(1);
+        });
+    });
+
+    describe('when packet loss is a number', () => {
+        const cases: Array<[percent: number, fraction: number]> = [
+            [0, 0],
+            [25, 0.25],
+            [50, 0.5],
+            [75, 0.75],
+            [100, 1],
+        ];
+
+        it.each(cases)('converts %d%% to the fraction %d', (percent, fraction) => {
+            expect(setPacketLoss({ alive: true, packetLoss: percent })).toBe(fraction);
+        });
+
+        it('keeps fractional percentages', () => {
+            expect(setPacketLoss({ alive: true, packetLoss: 33.33 })).toBeCloseTo(0.3333, 4);
+        });
+
+        it('uses the number and ignores `alive`', () => {
+            const unreachableButZeroLoss: Params = { alive: false, packetLoss: 0 };
+            const reachableButTotalLoss: Params = { alive: true, packetLoss: 100 };
+
+            expect(setPacketLoss(unreachableButZeroLoss)).toBe(0);
+            expect(setPacketLoss(reachableButTotalLoss)).toBe(1);
+        });
+    });
+
+    it('returns a fraction between 0 and 1, not a percentage', () => {
+        const result = setPacketLoss({ alive: true, packetLoss: 40 });
+
+        expect(result).toBeGreaterThanOrEqual(0);
+        expect(result).toBeLessThanOrEqual(1);
+    });
 });
