@@ -1,7 +1,13 @@
 import type { PingHost } from '../../types';
 
+export const setPacketLoss = (params: Pick<PingHost.PingResponseBase, 'alive' | 'packetLoss'>): number => {
+    const { alive, packetLoss } = params;
+
+    return (packetLoss === 'unknown' ? alive ? 0.00 : 100.00 : packetLoss) / 100;
+};
+
 export const formatPingResponse = (pingResponse: PingHost.PingResponseBase): PingHost.Response => {
-    const packetLoss = (pingResponse.packetLoss === 'unknown' ? 100.00 : pingResponse.packetLoss) / 100;
+    const packetLoss = setPacketLoss({ alive: pingResponse.alive, packetLoss: pingResponse.packetLoss });
     const isReachable = pingResponse.alive;
 
     const baseResponse = {
@@ -16,7 +22,7 @@ export const formatPingResponse = (pingResponse: PingHost.PingResponseBase): Pin
     if (isReachable) {
         return {
             ...baseResponse,
-            isReachable: true,
+            isReachable,
             latency: {
                 average: Number(pingResponse.avg),
                 slowest: Number(pingResponse.max),
@@ -28,8 +34,8 @@ export const formatPingResponse = (pingResponse: PingHost.PingResponseBase): Pin
 
     return {
         ...baseResponse,
+        isReachable,
         latency: null,
-        isReachable: false,
         status: 'Offline',
     };
 };
