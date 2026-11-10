@@ -1,3 +1,4 @@
+
 import { Poller } from '../../src/lib/poller/Poller';
 
 import type { PingHost } from '../../src/types';
@@ -7,7 +8,12 @@ jest.setTimeout(30_000);
 const LOOPBACK = '127.0.0.1';
 const BLACKHOLE = '192.0.2.1';
 
-const collect = (poller: Poller, host: string, n: number, interval = 1000): Promise<PingHost.Response[]> =>
+const collect = (
+    poller: Poller,
+    host: string,
+    n: number,
+    interval = 1000,
+): Promise<PingHost.Response[]> =>
     new Promise((resolve) => {
         const results: PingHost.Response[] = [];
 
@@ -72,7 +78,7 @@ describe('Poller (live)', () => {
         it('polls reachable and unreachable hosts side by side', async () => {
             const [up, down] = await Promise.all([
                 collect(poller, LOOPBACK, 2),
-                collect(poller, BLACKHOLE, 2, 500),
+                collect(poller, BLACKHOLE, 2, 1000),
             ]);
 
             expect(up.every((r) => r.isReachable)).toBe(true);
@@ -82,14 +88,20 @@ describe('Poller (live)', () => {
         it('stops delivering results after stopPolling', async () => {
             const cb = jest.fn();
 
-            poller.pollHost({ host: LOOPBACK, interval: 1000 }, cb);
-            await new Promise((resolve) => setTimeout(resolve, 700));
+            const firstResult = new Promise<void>((resolve) => {
+                poller.pollHost({ host: LOOPBACK, interval: 1000 }, (res) => {
+                    cb(res);
+                    resolve();
+                });
+            });
+
+            await firstResult;
+
             poller.stopPolling(LOOPBACK);
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
             const settled = cb.mock.calls.length;
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1200));
 
             expect(settled).toBeGreaterThan(0);
             expect(cb).toHaveBeenCalledTimes(settled);
