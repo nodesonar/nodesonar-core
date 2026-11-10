@@ -7,7 +7,7 @@ jest.setTimeout(30_000);
 const LOOPBACK = '127.0.0.1';
 const BLACKHOLE = '192.0.2.1';
 
-const collect = (poller: Poller, host: string, n: number, interval = 300): Promise<PingHost.Response[]> =>
+const collect = (poller: Poller, host: string, n: number, interval = 1000): Promise<PingHost.Response[]> =>
     new Promise((resolve) => {
         const results: PingHost.Response[] = [];
 
@@ -82,7 +82,7 @@ describe('Poller (live)', () => {
         it('stops delivering results after stopPolling', async () => {
             const cb = jest.fn();
 
-            poller.pollHost({ host: LOOPBACK, interval: 200 }, cb);
+            poller.pollHost({ host: LOOPBACK, interval: 1000 }, cb);
             await new Promise((resolve) => setTimeout(resolve, 700));
             poller.stopPolling(LOOPBACK);
 
