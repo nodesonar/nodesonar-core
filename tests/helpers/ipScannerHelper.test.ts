@@ -98,11 +98,13 @@ describe('expandIpRange', () => {
 
     describe('invalid input', () => {
         it('should throw on unrecognised format', () => {
-            expect(() => expandIpRange('not-an-ip')).toThrow('Invalid dash range: not-an-ip');
+            expect(() => expandIpRange('not-an-ip')).toThrow('Invalid IP range: not-an-ip');
         });
 
         it('should throw on invalid IP in range', () => {
-            expect(() => expandIpRange('192.168.1.256/24')).toThrow('Invalid IP address');
+            const ip = '192.168.1.256/24';
+
+            expect(() => expandIpRange(ip)).toThrow(`Invalid IP range: ${ip}`);
         });
     });
 

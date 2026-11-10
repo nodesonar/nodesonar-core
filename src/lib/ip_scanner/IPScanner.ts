@@ -1,8 +1,7 @@
+import { IPScan } from '../../types';
 import { PingBase } from '../ping_base/PingBase';
 
-import { expandIpRange } from './helper';
-
-import type { IPScan } from '../../types';
+import { expandIpRange, inProgress } from './helper';
 
 export class IPScanner extends PingBase {
     constructor(options?: IPScan.Options) {
@@ -15,20 +14,34 @@ export class IPScanner extends PingBase {
      * and wildcard (192.168.1.*) notation.
      * @param range - The IP range to scan.
      * @param onDeviceFound - Optional callback invoked with each discovered device as it is found.
+     * @param onComplete - Optional callback invoked after the the the method has completed.
      * @returns A promise resolving to an array of all discovered devices.
      */
-    async discover(range: string, onDeviceFound?: (device: IPScan.Discovered) => void): Promise<IPScan.Discovered[]> {
+    async discover(range: string, onDeviceFound?: (device: IPScan.DiscoverInProgress) => void, onComplete?: (info: IPScan.DiscoveComplete) => void): Promise<IPScan.Discovered[]> {
+        const startTime = new Date().toISOString();
         const hosts = this.formatHostsFromRange(range);
         const discovered: IPScan.Discovered[] = [];
 
-        for (const host of hosts) {
+        for (var i = 0; i < hosts.length; i++) {
+            const host = hosts[i];
             const response = await this.ping(host);
 
             if (response.isReachable) {
-                discovered.push(response);
-                onDeviceFound?.(response);
+                const { host, latency: { average } } = response;
+
+                discovered.push({ host, latency: average });
+                onDeviceFound?.(inProgress(response.host, discovered.length, response.latency.average, startTime));
             }
         }
+
+        onComplete?.({
+            completedTime: new Date().toISOString(),
+            discoveredCount: discovered.length,
+            host: null,
+            lastUpdated: new Date().toISOString(),
+            startTime,
+            status: IPScan.ScanStatus.COMPLETE,
+        });
 
         return discovered;
     }

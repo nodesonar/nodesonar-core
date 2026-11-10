@@ -1,22 +1,34 @@
 import { IPScanner } from '../src';
-import { expandIpRange } from '../src/lib/ip_scanner/helper';
+import { expandIpRange, inProgress } from '../src/lib/ip_scanner/helper';
+import { IPScan } from '../src/types';
 
-import type { IPScan } from '../src/types';
+import type { PingHost } from '../src/types';
 
-jest.mock('../src/lib/ip_scanner/helper.ts');
+jest.mock('../src/lib/ip_scanner/helper.ts', () => ({
+    ...jest.requireActual('../src/lib/ip_scanner/helper.ts'),
+    expandIpRange: jest.fn(),
+}));
 
-type PingFn = (host: string) => Promise<IPScan.Discovered>;
+type PingFn = (host: string) => Promise<PingHost.Response>;
 
-const spyOnPing = (scanner: IPScanner): jest.SpyInstance<Promise<IPScan.Discovered>> => jest.spyOn(scanner as unknown as { ping: PingFn }, 'ping');
+const spyOnPing = (scanner: IPScanner): jest.SpyInstance<Promise<PingHost.Response>> => jest.spyOn(scanner as unknown as { ping: PingFn }, 'ping');
 
-const device = (host: string, isReachable: boolean): IPScan.Discovered => ({ host, isReachable }) as unknown as IPScan.Discovered;
+const START = '2026-01-01T00:00:00.000Z';
+const LATENCY = { average: 10, fastest: 8, slowest: 12 };
+
+const pingResponse = (host: string, isReachable: boolean): PingHost.Response =>
+    ({ host, isReachable, latency: isReachable ? LATENCY : null }) as unknown as PingHost.Response;
+
+const found = (host: string): IPScan.Discovered => ({ host, latency: LATENCY.average });
 
 describe('IPScanner', () => {
     const mockedExpand = jest.mocked(expandIpRange);
     let scanner: IPScanner;
-    let pingSpy: jest.SpyInstance<Promise<IPScan.Discovered>, [string]>;
+    let pingSpy: ReturnType<typeof spyOnPing>;
 
     beforeEach(() => {
+        jest.spyOn(Date.prototype, 'toISOString').mockReturnValue(START);
+
         scanner = new IPScanner();
         pingSpy = spyOnPing(scanner);
         mockedExpand.mockReset();
@@ -59,7 +71,7 @@ describe('IPScanner', () => {
 
         it('pings every host in order', async () => {
             mockedExpand.mockReturnValue(['10.0.0.1', '10.0.0.2', '10.0.0.3']);
-            pingSpy.mockImplementation(async (host) => device(host, true));
+            pingSpy.mockImplementation(async (host) => pingResponse(host, true));
 
             await scanner.discover('10.0.0.1-3');
 
@@ -68,52 +80,57 @@ describe('IPScanner', () => {
 
         it('returns only reachable devices', async () => {
             mockedExpand.mockReturnValue(['a', 'b', 'c']);
-            pingSpy.mockImplementation(async (host) => device(host, host !== 'b'));
+            pingSpy.mockImplementation(async (host) => pingResponse(host, host !== 'b'));
 
-            const result = await scanner.discover('x');
-
-            expect(result).toEqual([device('a', true), device('c', true)]);
+            await expect(scanner.discover('x')).resolves.toEqual([found('a'), found('c')]);
         });
 
         it('returns an empty array when nothing is reachable', async () => {
             mockedExpand.mockReturnValue(['a', 'b']);
-            pingSpy.mockImplementation(async (host) => device(host, false));
+            pingSpy.mockImplementation(async (host) => pingResponse(host, false));
 
             await expect(scanner.discover('x')).resolves.toEqual([]);
         });
 
         it('keeps discovered devices in scan order', async () => {
             mockedExpand.mockReturnValue(['a', 'b', 'c']);
-            pingSpy.mockImplementation(async (host) => device(host, true));
+            pingSpy.mockImplementation(async (host) => pingResponse(host, true));
 
             const result = await scanner.discover('x');
 
-            expect(result.map((d) => (d as unknown as { host: string }).host)).toEqual(['a', 'b', 'c']);
+            expect(result.map((d) => d.host)).toEqual(['a', 'b', 'c']);
         });
 
-        it('works without a callback', async () => {
+        it('reports the average latency of each device', async () => {
             mockedExpand.mockReturnValue(['a']);
-            pingSpy.mockResolvedValue(device('a', true));
+            pingSpy.mockResolvedValue(pingResponse('a', true));
+
+            await expect(scanner.discover('x')).resolves.toEqual([{ host: 'a', latency: 10 }]);
+        });
+
+        it('works without callbacks', async () => {
+            mockedExpand.mockReturnValue(['a']);
+            pingSpy.mockResolvedValue(pingResponse('a', true));
 
             await expect(scanner.discover('x')).resolves.toHaveLength(1);
         });
 
         describe('onDeviceFound', () => {
-            it('is called once per reachable device with that device', async () => {
+            it('is called once per reachable device with progress info', async () => {
                 mockedExpand.mockReturnValue(['a', 'b', 'c']);
-                pingSpy.mockImplementation(async (host) => device(host, host !== 'b'));
+                pingSpy.mockImplementation(async (host) => pingResponse(host, host !== 'b'));
                 const cb = jest.fn();
 
                 await scanner.discover('x', cb);
 
                 expect(cb).toHaveBeenCalledTimes(2);
-                expect(cb).toHaveBeenNthCalledWith(1, device('a', true));
-                expect(cb).toHaveBeenNthCalledWith(2, device('c', true));
+                expect(cb).toHaveBeenNthCalledWith(1, inProgress('a', 1, LATENCY.average, START));
+                expect(cb).toHaveBeenNthCalledWith(2, inProgress('c', 2, LATENCY.average, START));
             });
 
             it('is never called when nothing is reachable', async () => {
                 mockedExpand.mockReturnValue(['a', 'b']);
-                pingSpy.mockImplementation(async (host) => device(host, false));
+                pingSpy.mockImplementation(async (host) => pingResponse(host, false));
                 const cb = jest.fn();
 
                 await scanner.discover('x', cb);
@@ -124,9 +141,9 @@ describe('IPScanner', () => {
             it('fires as each device is found, before the scan completes', async () => {
                 mockedExpand.mockReturnValue(['a', 'b']);
 
-                let resolveSecond!: (value: IPScan.Discovered) => void;
+                let resolveSecond!: (value: PingHost.Response) => void;
 
-                pingSpy.mockResolvedValueOnce(device('a', true));
+                pingSpy.mockResolvedValueOnce(pingResponse('a', true));
                 pingSpy.mockImplementationOnce(
                     () =>
                         new Promise((resolve) => {
@@ -141,12 +158,39 @@ describe('IPScanner', () => {
                 await new Promise(process.nextTick);
 
                 expect(cb).toHaveBeenCalledTimes(1);
-                expect(cb).toHaveBeenCalledWith(device('a', true));
+                expect(cb).toHaveBeenCalledWith(inProgress('a', 1, LATENCY.average, START));
 
-                resolveSecond(device('b', true));
+                resolveSecond(pingResponse('b', true));
                 await promise;
 
                 expect(cb).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        describe('onComplete', () => {
+            // Field names follow the shape your code emits (discoveredCount, status). Adjust if they differ.
+            it('is called once after every host has been checked', async () => {
+                mockedExpand.mockReturnValue(['a', 'b', 'c']);
+                pingSpy.mockImplementation(async (host) => pingResponse(host, host !== 'b'));
+                const onComplete = jest.fn();
+
+                await scanner.discover('x', undefined, onComplete);
+
+                expect(onComplete).toHaveBeenCalledTimes(1);
+                expect(onComplete).toHaveBeenCalledWith(
+                    expect.objectContaining({ discoveredCount: 2, status: IPScan.ScanStatus.COMPLETE }),
+                );
+                expect(pingSpy).toHaveBeenCalledTimes(3);
+            });
+
+            it('is called with a count of 0 when nothing is reachable', async () => {
+                mockedExpand.mockReturnValue(['a', 'b']);
+                pingSpy.mockImplementation(async (host) => pingResponse(host, false));
+                const onComplete = jest.fn();
+
+                await scanner.discover('x', undefined, onComplete);
+
+                expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ discoveredCount: 0 }));
             });
         });
 
@@ -154,7 +198,7 @@ describe('IPScanner', () => {
             it('pings sequentially: the next host waits for the previous ping', async () => {
                 mockedExpand.mockReturnValue(['a', 'b']);
 
-                let resolveFirst!: (value: IPScan.Discovered) => void;
+                let resolveFirst!: (value: PingHost.Response) => void;
 
                 pingSpy.mockImplementationOnce(
                     () =>
@@ -162,14 +206,14 @@ describe('IPScanner', () => {
                             resolveFirst = resolve;
                         }),
                 );
-                pingSpy.mockResolvedValueOnce(device('b', true));
+                pingSpy.mockResolvedValueOnce(pingResponse('b', true));
 
                 const promise = scanner.discover('x');
 
                 await new Promise(process.nextTick);
                 expect(pingSpy).toHaveBeenCalledTimes(1);
 
-                resolveFirst(device('a', true));
+                resolveFirst(pingResponse('a', true));
                 await promise;
 
                 expect(pingSpy).toHaveBeenCalledTimes(2);
@@ -180,9 +224,9 @@ describe('IPScanner', () => {
             it('rejects if ping rejects, discarding results found so far', async () => {
                 mockedExpand.mockReturnValue(['a', 'b', 'c']);
                 pingSpy
-                    .mockResolvedValueOnce(device('a', true))
+                    .mockResolvedValueOnce(pingResponse('a', true))
                     .mockRejectedValueOnce(new Error('boom'))
-                    .mockResolvedValueOnce(device('c', true));
+                    .mockResolvedValueOnce(pingResponse('c', true));
                 const cb = jest.fn();
 
                 await expect(scanner.discover('x', cb)).rejects.toThrow('boom');
@@ -202,7 +246,7 @@ describe('IPScanner', () => {
 
             it('aborts the scan if the callback throws', async () => {
                 mockedExpand.mockReturnValue(['a', 'b']);
-                pingSpy.mockImplementation(async (host) => device(host, true));
+                pingSpy.mockImplementation(async (host) => pingResponse(host, true));
                 const cb = jest.fn(() => {
                     throw new Error('cb failed');
                 });
