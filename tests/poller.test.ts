@@ -54,8 +54,21 @@ describe('Poller', () => {
         it('respects a custom interval', async () => {
             const cb = jest.fn();
 
-            poller.pollHost({ host: '1.1.1.1', interval: 250 }, cb);
-            await jest.advanceTimersByTimeAsync(1000);
+            poller.pollHost({ host: '1.1.1.1', interval: 1500 }, cb);
+
+            await jest.advanceTimersByTimeAsync(1499);
+            expect(cb).toHaveBeenCalledTimes(0);
+
+            await jest.advanceTimersByTimeAsync(1);
+            expect(cb).toHaveBeenCalledTimes(1);
+        });
+
+        it('continues polling at the configured interval', async () => {
+            const cb = jest.fn();
+
+            poller.pollHost({ host: '1.1.1.1', interval: 1500 }, cb);
+
+            await jest.advanceTimersByTimeAsync(6000);
 
             expect(cb).toHaveBeenCalledTimes(4);
         });
@@ -89,11 +102,11 @@ describe('Poller', () => {
             const cbA = jest.fn();
             const cbB = jest.fn();
 
-            poller.pollHost({ host: 'a.test', interval: 500 }, cbA);
+            poller.pollHost({ host: 'a.test', interval: 1000 }, cbA);
             poller.pollHost({ host: 'b.test', interval: 1000 }, cbB);
             await jest.advanceTimersByTimeAsync(1000);
 
-            expect(cbA).toHaveBeenCalledTimes(2);
+            expect(cbA).toHaveBeenCalledTimes(1);
             expect(cbB).toHaveBeenCalledTimes(1);
             expect(pingSpy).toHaveBeenCalledWith('a.test');
             expect(pingSpy).toHaveBeenCalledWith('b.test');
@@ -118,6 +131,17 @@ describe('Poller', () => {
 
             expect(jest.getTimerCount()).toBe(1);
         });
+
+        it.each([999, 500, 100, 0, -1])(
+            'throws NodeSonarError when interval is %i ms',
+            (interval) => {
+                const cb = jest.fn();
+
+                expect(() =>
+                    poller.pollHost({ host: '1.1.1.1', interval }, cb),
+                ).toThrow(NodeSonarError);
+            },
+        );
     });
 
     describe('stopPolling', () => {
