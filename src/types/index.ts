@@ -58,7 +58,39 @@ export namespace IPScan {
         timeout?: number;
     }
 
-    export type Discovered = Pick<PingHost.Response, 'host' | 'latency'>;
+    export type Discovered = Pick<PingHost.ResponseOnline, 'host'> & {
+        latency: number;
+    };
+
+    export enum ScanStatus {
+        STARTED = 'started',
+        IN_PROGRESS = 'in_progress',
+        COMPLETE = 'complete',
+        FAILED = 'failed'
+    };
+
+    interface ResponseBase {
+        discoveredCount: number;
+        host: Discovered | null;
+        status: ScanStatus;
+        startTime: string;
+        lastUpdated?: string;
+        completedTime: string | null;
+    }
+
+    export interface DiscoverInProgress extends ResponseBase {
+        completedTime: null;
+        host: Discovered;
+        status: ScanStatus.IN_PROGRESS;
+    }
+
+    export interface DiscoveComplete extends ResponseBase {
+        completedTime: string;
+        host: null;
+        status: ScanStatus.COMPLETE;
+    }
+
+    export type Response = DiscoverInProgress | DiscoveComplete;
 }
 
 export namespace SpeedTestConfig {
